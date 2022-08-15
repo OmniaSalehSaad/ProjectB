@@ -33,7 +33,10 @@ namespace ProjectB
                          ResourceBuilder.CreateDefault()
                            .AddService(serviceName: "OpenTelemetry.RampUp.ProjectB.*", serviceVersion: "0.0.2"))
                  .AddAspNetCoreInstrumentation()
+                 //############################################################################################################
+                 // when enable the line below, the spans have correctly relationship 
                  //.AddHttpClientInstrumentation() 
+                 //#################################################################################################################
                  .AddJaegerExporter()
                  .AddConsoleExporter();
              });
@@ -63,8 +66,6 @@ namespace ProjectB
             {
                 endpoints.MapGet("/", async context =>
                 {
-
-
 
 
                     Activity.Current.AddTag("Trace_ID", Activity.Current.TraceId.ToString());

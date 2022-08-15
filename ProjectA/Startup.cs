@@ -1,15 +1,17 @@
 ﻿
 
+using OpenTelemetry;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Diagnostics;
+
 
 namespace ProjectA
 {
     public static class Startup
     {
 
-        public static readonly ActivitySource MyActivitySource = new("ProjectA.Startup.*");
+         public static readonly ActivitySource MyActivitySource = new("ProjectA.Startup.*");
 
         public static WebApplication InitializeApp(String[] args)
         {
@@ -22,21 +24,22 @@ namespace ProjectA
 
         private static void ConfigureServices(WebApplicationBuilder builder)
         {
-            Activity.DefaultIdFormat = ActivityIdFormat.Hierarchical;
+            // Activity.DefaultIdFormat = ActivityIdFormat.Hierarchical;
 
             // Add services to the container.
             builder.Services.AddRazorPages();
-            builder.Services.AddOpenTelemetryTracing(builder =>
-            {
-                builder.AddSource("ProjectA.Startup.*")
-                  .SetResourceBuilder(
-                        ResourceBuilder.CreateDefault()
-                          .AddService(serviceName: "OpenTelemetry.RampUp.ProjectA.*", serviceVersion: "0.0.1"))
-                .AddAspNetCoreInstrumentation()
-                .AddHttpClientInstrumentation()
-                .AddJaegerExporter()
-                .AddConsoleExporter();
-            });
+            builder.Services.AddHttpClient("ProjectC").ConfigureHttpClient(c => c.BaseAddress = new Uri("https://localhost:7215/Omnia"));
+              builder.Services.AddOpenTelemetryTracing(builder =>
+              {
+                  builder.AddSource("ProjectA.Startup.*")
+                    .SetResourceBuilder(
+                          ResourceBuilder.CreateDefault()
+                            .AddService(serviceName: "OpenTelemetry.RampUp.ProjectA.*", serviceVersion: "0.0.1"))
+                  .AddAspNetCoreInstrumentation()
+                  .AddHttpClientInstrumentation()
+                  .AddJaegerExporter()
+                  .AddConsoleExporter();
+              });
         }
 
         private static void Configure(WebApplication app)
@@ -61,7 +64,8 @@ namespace ProjectA
 
             app.UseEndpoints(endpoints =>
             {
-             
+
+
                 endpoints.MapGet("/test", async context =>
                 {
 
@@ -70,10 +74,11 @@ namespace ProjectA
                     Activity.Current.AddTag("Span_ID", Activity.Current.SpanId.ToString());
                     Activity.Current.AddTag("Parent_Span_ID", Activity.Current.ParentSpanId.ToString());
                     await context.Response.WriteAsync("ProjectA TEST");
+
                 });
             });
         }
 
-
+   
     }
 }
