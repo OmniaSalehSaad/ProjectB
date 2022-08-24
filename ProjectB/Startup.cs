@@ -34,7 +34,7 @@ namespace ProjectB
                  .AddAspNetCoreInstrumentation()
                  //############################################################################################################
                  // when enable the line below, the spans have correctly relationship 
-                 .AddHttpClientInstrumentation() 
+                 //.AddHttpClientInstrumentation() 
                  //#################################################################################################################
                  .AddJaegerExporter()
                  .AddConsoleExporter();

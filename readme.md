@@ -27,7 +27,7 @@ Visual Studio<br />
 4- Download Jaeger [Jaeger – Download Jaeger (jaegertracing.io)](https://www.jaegertracing.io/download/)  and then run jager using following command
 > ./jaeger-all-in-one
 
-You can open jaeger using http://localhost:16686/. 
+You can open jaeger using http://localhost:16686/ <br />
 5- Start running, projectA will be on https://localhost:7215/ and projectB will be on http://localhost:5119
 
 
