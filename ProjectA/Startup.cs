@@ -28,7 +28,6 @@ namespace ProjectA
 
             // Add services to the container.
             builder.Services.AddRazorPages();
-            builder.Services.AddHttpClient("ProjectC").ConfigureHttpClient(c => c.BaseAddress = new Uri("https://localhost:7215/Omnia"));
               builder.Services.AddOpenTelemetryTracing(builder =>
               {
                   builder.AddSource("ProjectA.Startup.*")
@@ -55,26 +54,20 @@ namespace ProjectA
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseRouting();
-
             app.UseAuthorization();
-
             app.MapRazorPages();
 
             app.UseEndpoints(endpoints =>
             {
-
-
                 endpoints.MapGet("/test", async context =>
                 {
-
+                    // Adding tags for debugging & tracing
                     Activity.Current.AddTag("Trace_ID", Activity.Current.TraceId.ToString());
-
                     Activity.Current.AddTag("Span_ID", Activity.Current.SpanId.ToString());
                     Activity.Current.AddTag("Parent_Span_ID", Activity.Current.ParentSpanId.ToString());
-                    await context.Response.WriteAsync("ProjectA TEST");
-
+                    
+                    await context.Response.WriteAsync("ProjectA /test endpoint is called");
                 });
             });
         }
