@@ -8,7 +8,7 @@ namespace ProjectB
    public static class Startup
     {
         //for manual instrumentation
-        public static readonly ActivitySource MyActivitySource = new ActivitySource("ManualTrace");
+        public static readonly ActivitySource MyActivitySource = new ActivitySource("ProjectB.Startup.*");
         public static WebApplication InitializeApp(String[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -25,8 +25,7 @@ namespace ProjectB
             builder.Services.AddHttpClient("ProjectA").ConfigureHttpClient(c => c.BaseAddress = new Uri("http://localhost:5119/"));
              builder.Services.AddOpenTelemetryTracing(builder =>
              {
-                 //builder.AddSource(MyActivitySource.Name)
-                 builder.AddSource("ManualTrace").AddSource("ManualTrace.SecondTrace")
+                 builder.AddSource("ProjectBh")
                  .SetSampler(new AlwaysOnSampler())
                
                  .SetResourceBuilder(
@@ -35,7 +34,7 @@ namespace ProjectB
                  .AddAspNetCoreInstrumentation()
                  //############################################################################################################
                  // when enable the line below, the spans have correctly relationship 
-                 //.AddHttpClientInstrumentation() 
+                 .AddHttpClientInstrumentation() 
                  //#################################################################################################################
                  .AddJaegerExporter()
                  .AddConsoleExporter();
@@ -66,22 +65,15 @@ namespace ProjectB
             {
                 endpoints.MapGet("/", async context =>
                 {
-
-
+                    // Adding tags for debugging & tracing
                     Activity.Current.AddTag("Trace_ID", Activity.Current.TraceId.ToString());
-
                     Activity.Current.AddTag("Span_ID", Activity.Current.SpanId.ToString());
                     Activity.Current.AddTag("Parent_Span_ID", Activity.Current.ParentSpanId.ToString());
 
-
+                    // Making call to /test endpoint in ProjectA (can be found in Startup.cs in ProjectA)
                     var client = context.RequestServices.GetRequiredService<IHttpClientFactory>().CreateClient("ProjectA");
-                        await Task.Delay(500);
-
-                        var content = client.GetStringAsync("/test");
-                        await context.Response.WriteAsync(await content);
-                    
-
-
+                    var content = client.GetStringAsync("/test");
+                    await context.Response.WriteAsync(await content);
                 });
             });
         }
