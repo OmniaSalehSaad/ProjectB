@@ -1,4 +1,5 @@
 ﻿using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Diagnostics;
@@ -23,24 +24,25 @@ namespace ProjectB
             // Add services to the container.
             builder.Services.AddRazorPages();
             builder.Services.AddHttpClient("ProjectA").ConfigureHttpClient(c => c.BaseAddress = new Uri("http://localhost:5119/"));
-             builder.Services.AddOpenTelemetryTracing(builder =>
+            builder.Services.AddOpenTelemetryTracing(builder =>
              {
-                 builder.AddSource("ProjectBh")
+                 builder.AddSource("ProjectB")
                  .SetSampler(new AlwaysOnSampler())
-               
                  .SetResourceBuilder(
                          ResourceBuilder.CreateDefault()
                            .AddService(serviceName: "OpenTelemetry.RampUp.ProjectB.*", serviceVersion: "0.0.2"))
                  .AddAspNetCoreInstrumentation()
                  //############################################################################################################
                  // when enable the line below, the spans have correctly relationship 
-                 //.AddHttpClientInstrumentation() 
+                 .AddHttpClientInstrumentation() 
                  //#################################################################################################################
                  .AddJaegerExporter()
                  .AddConsoleExporter();
+                 
              });
-
+            Sdk.SetDefaultTextMapPropagator(new TestMapPropagator());            
         }
+
         private static void Configure(WebApplication app)
         {
 
@@ -66,9 +68,9 @@ namespace ProjectB
                 endpoints.MapGet("/", async context =>
                 {
                     // Adding tags for debugging & tracing
-                    Activity.Current.AddTag("Trace_ID", Activity.Current.TraceId.ToString());
-                    Activity.Current.AddTag("Span_ID", Activity.Current.SpanId.ToString());
-                    Activity.Current.AddTag("Parent_Span_ID", Activity.Current.ParentSpanId.ToString());
+                    Activity.Current?.AddTag("Trace_ID", Activity.Current.TraceId.ToString());
+                    Activity.Current?.AddTag("Span_ID", Activity.Current.SpanId.ToString());
+                    Activity.Current?.AddTag("Parent_Span_ID", Activity.Current.ParentSpanId.ToString());
 
                     // Making call to /test endpoint in ProjectA (can be found in Startup.cs in ProjectA)
                     var client = context.RequestServices.GetRequiredService<IHttpClientFactory>().CreateClient("ProjectA");
